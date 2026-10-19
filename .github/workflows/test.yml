@@ -86,7 +86,17 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Build Docker image sqlite
-        run: make dev-build-sqlite
+        run: |
+          # The pull of the base image is rate limited by the registry and
+          # fails from time to time, retry the build when that happens.
+          for attempt in 1 2 3; do
+            if make dev-build-sqlite; then
+              exit 0
+            fi
+            echo "Build attempt ${attempt} failed, retrying in 30 seconds"
+            sleep 30
+          done
+          exit 1
 
   build-postgres:
     runs-on: ubuntu-latest
@@ -95,4 +105,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Build Docker image pg
-        run: make dev-build-pg
+        run: |
+          # The pull of the base image is rate limited by the registry and
+          # fails from time to time, retry the build when that happens.
+          for attempt in 1 2 3; do
+            if make dev-build-pg; then
+              exit 0
+            fi
+            echo "Build attempt ${attempt} failed, retrying in 30 seconds"
+            sleep 30
+          done
+          exit 1
